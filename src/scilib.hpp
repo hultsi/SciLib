@@ -74,7 +74,7 @@ namespace scilib {
 		}
 
 		void popRow(int row) {
-			this->mat.erase(this->mat.begin() + this->cols*(row-1), this->mat.begin() + row*this->cols);
+			this->mat.erase(this->mat.begin() + this->cols*row, this->mat.begin() + (row+1)*this->cols);
 			this->rows -= 1;
 		}
 
@@ -138,6 +138,20 @@ namespace scilib {
 			return matOut;
 		}
 
+		Matrix2d<T> operator!() {
+			if (this->getRows() != this->getColumns()) {
+				std::cerr << "Non square matrix is not invertible\n";
+				return *this;
+			}
+			Matrix2d<T> matOut(this->rows, this->cols);
+			T det = scilib::determinant(*this);
+			Matrix2d<T> adj = scilib::adjugate(*this);
+			T *val = &matOut.mat.at(0);
+			for (T &a : adj) {
+				*val++ = a/det;
+			}
+			return matOut;
+		}
 
 		private:
 		int rows = 0;
@@ -148,17 +162,71 @@ namespace scilib {
 namespace scilib {
 	// TODO: Optimize with pointers instead of using popRow, popCol
 	template <typename T>
-	T determinant(Matrix2d<T> &dataMat, T *P) {
-		if (P == nullptr) {
-			P = &dataMat.mat.at(0);
+	T determinant(Matrix2d<T> &dataMat) {
+		if (dataMat.getRows() != dataMat.getColumns()) {
+			std::cerr << "Non square matrix is not invertible\n";
+			return 0;
 		}
-		int det = 0;
+		if (dataMat.getColumns() == 1) {
+			return dataMat(0,0);
+		}
+		T det = 0;
 		int sign = 1;
-		for (int i = 0; i < dataMat.getColumns(); ++i) {
-			det += sign * (*P) * determinant(dataMat, P + dataMat.getColumns()+1);
+		int max = dataMat.getColumns();
+		for (int i = 0; i < max; ++i) {
+			Matrix2d<T> tmpMat = dataMat;
+			tmpMat.popRow(0);
+			tmpMat.popColumn(i);
+			det += sign * dataMat(0,i) * determinant(tmpMat);
 			sign *= -1;
 		}
 		return det;
+	}
+	// template <typename T>
+	// T determinant(Matrix2d<T> &dataMat, T *P) {
+	// 	if (P == nullptr) {
+	// 		P = &dataMat.mat.at(0);
+	// 	}
+	// 	int det = 0;
+	// 	int sign = 1;
+	// 	for (int i = 0; i < dataMat.getColumns(); ++i) {
+	// 		Matrix2d<T> tmpMat = dataMat;
+	// 		tmpMat.popRow(0);
+	// 		tmpMat.popColumn(i);
+	// 		det += sign * (*P) * determinant(tmpMat, P + dataMat.getColumns()+1);
+	// 		sign *= -1;
+	// 	}
+	// 	return det;
+	// }
+
+	template <typename T>
+	Matrix2d<T> adjugate(Matrix2d<T> &matIn) {
+		if (matIn.getRows() != matIn.getColumns()) {
+			std::cerr << "Non square matrix is not invertible\n";
+			return matIn;
+		}
+		const int rows = matIn.getRows();
+		const int cols = matIn.getColumns();
+		Matrix2d<T> matOut(rows, cols);
+
+		Matrix2d<T> tmpMat = matIn;
+		int currentRow = 0;
+		int currentCol = 0;
+		int sign = 1;
+		for (T &el: matOut) {
+			tmpMat = matIn;
+			tmpMat.popRow(currentRow);
+			tmpMat.popColumn(currentCol);
+			sign = ((currentRow+currentCol+1) % 2)*2 - 1;
+			el = sign*determinant(tmpMat);
+			++currentCol;
+			if (currentCol == cols) {
+				currentCol = 0;
+				++currentRow;
+			}
+		}
+
+		return ~matOut;
 	}
 }
 

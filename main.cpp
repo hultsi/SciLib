@@ -15,9 +15,15 @@ void testFun() {
 	scilib::Matrix2d<double> mat2(file);
 	scilib::Matrix2d<double> mat3 = mat2*mat2;
 	
-	mat2.popRow(2);
-	mat2.popColumn(1);
 	mat2.print();
+
+	std::cout << "Determinant\n";
+	std::cout << scilib::determinant(mat2) << "\n";
+	std::cout << "Adjugate\n";
+	scilib::adjugate(mat2).print();
+	std::cout << "Inverse\n";
+	(!mat2).print();
+	
 	//scilib::determinant(mat2);
 	// auto start2 = high_resolution_clock::now();
 	// auto stop2 = high_resolution_clock::now();

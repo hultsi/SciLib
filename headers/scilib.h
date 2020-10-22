@@ -38,8 +38,14 @@ namespace scilib {
 }
 
 namespace scilib {
+	// TODO : Optimize determinant
 	template <typename T>
-	T determinant(Matrix2d<T> &mat, T *P = nullptr);
+	T determinant(Matrix2d<T> &mat);
+	// template <typename T>
+	// T determinant(Matrix2d<T> &mat, T *P = nullptr);
+
+	template <typename T>
+	Matrix2d<T> adjugate(Matrix2d<T> &inMat);
 }
 
 namespace scilib {
