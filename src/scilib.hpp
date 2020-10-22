@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "fileSys.h"
 
 namespace scilib {
@@ -15,7 +17,7 @@ namespace scilib {
 			this->mat.resize(rows*cols,0);
 		}
 		Matrix2d(const int rows, const int cols, std::vector<T> &mat) {
-			int mod = rows % mat.size();
+			int mod = mat.size() % rows;
 			if (mod != 0) {
 				std::cerr << "Rows and/or columns don't match input vector size\n";
 				return;
@@ -23,7 +25,7 @@ namespace scilib {
 			this->rows = rows;
 			this->cols = cols;
 			this->mat.resize(rows*cols);
-			int *val = &mat.at(0);
+			T *val = &mat.at(0);
 			for (T &el : this->mat)
 				el = *val++;
 		}
@@ -172,7 +174,7 @@ namespace scilib {
 		}
 		T det = 0;
 		int sign = 1;
-		int max = dataMat.getColumns();
+		const int max = dataMat.getColumns();
 		for (int i = 0; i < max; ++i) {
 			Matrix2d<T> tmpMat = dataMat;
 			tmpMat.popRow(0);
@@ -227,6 +229,58 @@ namespace scilib {
 		}
 
 		return ~matOut;
+	}
+
+	template <typename T>
+	T median(std::vector<T> &v) noexcept {
+		const int length = v.size();
+		if (length % 2 == 0) {
+			const int halfLen = length/2;
+			std::nth_element(v.begin(), v.begin() + halfLen, v.end());
+			std::nth_element(v.begin(), v.begin() + halfLen - 1, v.end());
+			return (v.at(halfLen) + v.at(halfLen-1)) / 2;
+		} else {
+			const int halfLen = (length+1)/2-1;
+			std::nth_element(v.begin(), v.begin() + halfLen, v.end());
+			return v.at(halfLen);
+		}
+	}
+	template <typename T>
+	T median(Matrix2d<T> &inMat) noexcept {
+		return median(inMat.mat);
+	}
+
+	template <typename T>
+	std::vector<T> movmedian(std::vector<T> &v, int winSize) {
+		std::vector<T> vOut = v;
+		winSize = winSize + ((winSize+1) % 2);
+		const int length = v.size();
+		const int winHalf = (winSize+1)/2 - 1;
+		int pos = 0;
+		int posLeft = -winHalf;
+		int posRight = winHalf+1;
+		for (T &el : vOut) {
+			if (pos < winHalf) {
+				std::vector<T> tmp(v.begin(), v.begin()+posRight);
+				el = median(tmp);
+			} else if (pos > length-winHalf-1) {
+				std::vector<T> tmp(v.begin()+posLeft, v.begin()+length);
+				el = median(tmp);
+			} else {
+				std::vector<T> tmp(v.begin()+posLeft, v.begin()+posRight);
+				el = median(tmp);
+			}
+			++pos;
+			++posLeft;
+			++posRight;
+		}
+		return vOut;
+	}
+	template <typename T>
+	Matrix2d<T> movmedian(Matrix2d<T> &matIn, int winSize) {
+		std::vector<T> tmp = movmedian(matIn.mat, winSize);
+		const Matrix2d<T> matOut(matIn.getRows(), matIn.getColumns(), tmp);
+		return matOut;
 	}
 }
 

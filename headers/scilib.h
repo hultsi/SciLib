@@ -46,6 +46,15 @@ namespace scilib {
 
 	template <typename T>
 	Matrix2d<T> adjugate(Matrix2d<T> &inMat);
+
+	template <typename T>
+	T median(std::vector<T> &v) noexcept; 
+	template <typename T>
+	T median(Matrix2d<T> &inMat) noexcept;
+	template <typename T>
+	std::vector<T> movmedian(std::vector<T> &v, int winSize); 
+	template <typename T>
+	Matrix2d<T> movmedian(Matrix2d<T> &inMat, int winSize);
 }
 
 namespace scilib {
