@@ -162,44 +162,43 @@ namespace scilib {
 }
 
 namespace scilib {
-	// TODO: Optimize with pointers instead of using popRow, popCol
 	template <typename T>
 	T determinant(Matrix2d<T> &dataMat) {
-		if (dataMat.getRows() != dataMat.getColumns()) {
-			std::cerr << "Non square matrix is not invertible\n";
-			return 0;
+		int det = 0;
+		int rows = dataMat.getRows();
+		int cols = dataMat.getColumns();
+		int pos = 1;
+		int tmp = 0;
+		for (int i = 0; i < cols; ++i) {
+			tmp = dataMat(0,i);
+			pos = i+1;
+			for (int k = 1; k < rows; ++k) {
+				if (pos == cols) {
+					pos = 0;
+					tmp *= dataMat(k, pos); 
+				} else {
+					tmp *= dataMat(k, pos); 
+				}
+				++pos;
+			}
+			det += tmp;
 		}
-		if (dataMat.getColumns() == 1) {
-			return dataMat(0,0);
-		}
-		T det = 0;
-		int sign = 1;
-		const int max = dataMat.getColumns();
-		for (int i = 0; i < max; ++i) {
-			Matrix2d<T> tmpMat = dataMat;
-			tmpMat.popRow(0);
-			tmpMat.popColumn(i);
-			det += sign * dataMat(0,i) * determinant(tmpMat);
-			sign *= -1;
+		for (int i = 0; i < cols; ++i) {
+			tmp = dataMat(0,i);
+			pos = i-1;
+			for (int k = 1; k < rows; ++k) {
+				if (pos == -1) {
+					pos = cols-1;
+					tmp *= dataMat(k, pos); 
+				} else {
+					tmp *= dataMat(k, pos); 
+				}
+				--pos;
+			}
+			det -= tmp;
 		}
 		return det;
 	}
-	// template <typename T>
-	// T determinant(Matrix2d<T> &dataMat, T *P) {
-	// 	if (P == nullptr) {
-	// 		P = &dataMat.mat.at(0);
-	// 	}
-	// 	int det = 0;
-	// 	int sign = 1;
-	// 	for (int i = 0; i < dataMat.getColumns(); ++i) {
-	// 		Matrix2d<T> tmpMat = dataMat;
-	// 		tmpMat.popRow(0);
-	// 		tmpMat.popColumn(i);
-	// 		det += sign * (*P) * determinant(tmpMat, P + dataMat.getColumns()+1);
-	// 		sign *= -1;
-	// 	}
-	// 	return det;
-	// }
 
 	template <typename T>
 	Matrix2d<T> adjugate(Matrix2d<T> &matIn) {

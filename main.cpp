@@ -15,15 +15,12 @@ void testFun() {
 	scilib::Matrix2d<double> mat2(file);
 	scilib::Matrix2d<double> mat3 = mat2*mat2;
 
-	mat3.print();
-	std::cout << scilib::median(mat3) << "\n\n";
-	scilib::Matrix2d<double> mat4 = scilib::movmedian(mat3,5);
-	mat4.print();
-	//scilib::determinant(mat2);
-	// auto start2 = high_resolution_clock::now();
-	// auto stop2 = high_resolution_clock::now();
-	// auto duration2 = duration_cast<microseconds>(stop2 - start2); 
-	// std::cout << duration2.count() << "\n";
+	// auto start = high_resolution_clock::now();
+	// for (int i = 0; i < 10000; ++i)
+	// 	scilib::determinant2(mat2);
+	// auto stop = high_resolution_clock::now();
+	// auto duration = duration_cast<microseconds>(stop - start); 
+	// std::cout << duration.count() << "\n";
 
 	std::cout << "finished\n";
 }
