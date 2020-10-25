@@ -49,7 +49,7 @@ namespace scilib {
 		auto begin() { return this->mat.begin(); }
 		auto end() { return this->mat.end(); }
 
-		void print() {
+		void print() const {
 			int i = 0;
 			for (const T &el : this->mat) {
 				std::cout << el << "\t";
@@ -67,11 +67,11 @@ namespace scilib {
 			this->mat.resize(rows*cols,0);
 		}
 		
-		int getRows() {
+		int getRows() const {
 			return this->rows;
 		}
 
-		int getColumns() {
+		int getColumns() const {
 			return this->cols;
 		}
 
@@ -97,7 +97,8 @@ namespace scilib {
 			return this->mat.at(col + row*this->cols);
 		}
 
-		Matrix2d<T> operator*(Matrix2d<T> &matRight) {
+		// TODO: optimize this. E.g., remove matOut and return matRight.
+		Matrix2d<T> operator*(Matrix2d<T> matRight) {
 			Matrix2d<T> matOut;
 			const int columns = this->cols;
 			const int rows = matRight.rows;
@@ -146,11 +147,15 @@ namespace scilib {
 				return *this;
 			}
 			Matrix2d<T> matOut(this->rows, this->cols);
-			T det = scilib::determinant(*this);
-			Matrix2d<T> adj = scilib::adjugate(*this);
-			T *val = &matOut.mat.at(0);
-			for (T &a : adj) {
-				*val++ = a/det;
+			if (matOut.getRows() == 1) {
+				matOut(0,0) = 1/this->mat.at(0);
+			} else {
+				T det = scilib::determinant(*this);
+				Matrix2d<T> adj = scilib::adjugate(*this);
+				T *val = &matOut.mat.at(0);
+				for (T &a : adj) {
+					*val++ = a/det;
+				}
 			}
 			return matOut;
 		}
@@ -164,41 +169,71 @@ namespace scilib {
 namespace scilib {
 	template <typename T>
 	T determinant(Matrix2d<T> &dataMat) {
-		int det = 0;
-		int rows = dataMat.getRows();
-		int cols = dataMat.getColumns();
-		int pos = 1;
-		int tmp = 0;
-		for (int i = 0; i < cols; ++i) {
-			tmp = dataMat(0,i);
-			pos = i+1;
-			for (int k = 1; k < rows; ++k) {
-				if (pos == cols) {
-					pos = 0;
-					tmp *= dataMat(k, pos); 
-				} else {
-					tmp *= dataMat(k, pos); 
-				}
-				++pos;
-			}
-			det += tmp;
+		if (dataMat.getRows() != dataMat.getColumns()) {
+			std::cerr << "Non square matrix is not invertible\n";
+			return 0;
 		}
-		for (int i = 0; i < cols; ++i) {
-			tmp = dataMat(0,i);
-			pos = i-1;
-			for (int k = 1; k < rows; ++k) {
-				if (pos == -1) {
-					pos = cols-1;
-					tmp *= dataMat(k, pos); 
-				} else {
-					tmp *= dataMat(k, pos); 
-				}
-				--pos;
-			}
-			det -= tmp;
+		if (dataMat.getColumns() == 1) {
+			return dataMat(0,0);
+		}
+		T det = 0;
+		int sign = 1;
+		int max = dataMat.getColumns();
+		for (int i = 0; i < max; ++i) {
+			Matrix2d<T> tmpMat = dataMat;
+			tmpMat.popRow(0);
+			tmpMat.popColumn(i);
+			det += sign * dataMat(0,i) * determinant(tmpMat);
+			sign *= -1;
 		}
 		return det;
 	}
+	// This did not work btw.
+	// template <typename T>
+	// T determinant(Matrix2d<T> &matIn) {
+	// 	if (matIn.getRows() != matIn.getColumns()) {
+	// 		std::cerr << "Cannot calculate determinant of a non square matrix\n";
+	// 		return 0;
+	// 	}
+	// 	if (matIn.getRows() == 1)
+	// 		return matIn(0,0);
+	// 	else if (matIn.getRows() == 2)
+	// 		return matIn(0,0)*matIn(1,1) - matIn(0,1)*matIn(1,0);
+	// 	int det = 0;
+	// 	int rows = matIn.getRows();
+	// 	int cols = matIn.getColumns();
+	// 	int pos = 1;
+	// 	int tmp = 0;
+	// 	for (int i = 0; i < cols; ++i) {
+	// 		tmp = matIn(0,i);
+	// 		pos = i+1;
+	// 		for (int k = 1; k < rows; ++k) {
+	// 			if (pos == cols) {
+	// 				pos = 0;
+	// 				tmp *= matIn(k, pos); 
+	// 			} else {
+	// 				tmp *= matIn(k, pos); 
+	// 			}
+	// 			++pos;
+	// 		}
+	// 		det += tmp;
+	// 	}
+	// 	for (int i = 0; i < cols; ++i) {
+	// 		tmp = matIn(0,i);
+	// 		pos = i-1;
+	// 		for (int k = 1; k < rows; ++k) {
+	// 			if (pos == -1) {
+	// 				pos = cols-1;
+	// 				tmp *= matIn(k, pos); 
+	// 			} else {
+	// 				tmp *= matIn(k, pos); 
+	// 			}
+	// 			--pos;
+	// 		}
+	// 		det -= tmp;
+	// 	}
+	// 	return det;
+	// }
 
 	template <typename T>
 	Matrix2d<T> adjugate(Matrix2d<T> &matIn) {
@@ -231,7 +266,7 @@ namespace scilib {
 	}
 
 	template <typename T>
-	T median(std::vector<T> &v) noexcept {
+	T median(std::vector<T> v) noexcept {
 		const int length = v.size();
 		if (length % 2 == 0) {
 			const int halfLen = length/2;
@@ -250,7 +285,7 @@ namespace scilib {
 	}
 
 	template <typename T>
-	std::vector<T> movmedian(std::vector<T> &v, int winSize) {
+	std::vector<T> movmedian(const std::vector<T> &v, int winSize) noexcept {
 		std::vector<T> vOut = v;
 		winSize = winSize + ((winSize+1) % 2);
 		const int length = v.size();
@@ -276,54 +311,61 @@ namespace scilib {
 		return vOut;
 	}
 	template <typename T>
-	Matrix2d<T> movmedian(Matrix2d<T> &matIn, int winSize) {
+	Matrix2d<T> movmedian(const Matrix2d<T> &matIn, int winSize) noexcept {
 		std::vector<T> tmp = movmedian(matIn.mat, winSize);
-		const Matrix2d<T> matOut(matIn.getRows(), matIn.getColumns(), tmp);
+		Matrix2d<T> matOut(matIn.getRows(), matIn.getColumns(), tmp);
 		return matOut;
+	}
+
+	template <typename T>
+	Matrix2d<T> glm(Matrix2d<T> &X, Matrix2d<T> &Y) noexcept {
+		if (X.getRows() != Y.getRows())
+			return Matrix2d<T>();
+		return (!(~X*X))*(~X)*Y;
 	}
 }
 
 namespace scilib {
-	template <typename T, typename H>
-	Matrix2d<T> operator+(Matrix2d<T> lhs, const H &rhs) {
+	template <typename T>
+	Matrix2d<T> operator+(Matrix2d<T> lhs, const T &rhs) {
 		for (T &el : lhs)
 			el += rhs;
 		return lhs;
 	}
-	template <typename T, typename H>
-	Matrix2d<T> operator+(const H &lhs, Matrix2d<T> rhs) {
+	template <typename T>
+	Matrix2d<T> operator+(const T &lhs, Matrix2d<T> rhs) {
 		return rhs+lhs;
 	}
-	template <typename T, typename H>
-	Matrix2d<T> operator-(Matrix2d<T> lhs, const H &rhs) {
+	template <typename T>
+	Matrix2d<T> operator-(Matrix2d<T> lhs, const T &rhs) {
 		for (T &el : lhs)
 			el -= rhs;
 		return lhs;
 	}
-	template <typename T, typename H>
-	Matrix2d<T> operator-(const H &lhs, Matrix2d<T> rhs) {
+	template <typename T>
+	Matrix2d<T> operator-(const T &lhs, Matrix2d<T> rhs) {
 		for (T &el : rhs)
 			el = lhs-el;
 		return rhs;
 	}
-	template <typename T, typename H>
-	Matrix2d<T> operator*(Matrix2d<T> lhs, const H &rhs) {
+	template <typename T>
+	Matrix2d<T> operator*(Matrix2d<T> lhs, const T &rhs) {
 		for (T &el : lhs)
 			el *= rhs;
 		return lhs;
 	}
-	template <typename T, typename H>
-	Matrix2d<T> operator*(const H &lhs, Matrix2d<T> rhs) {
+	template <typename T>
+	Matrix2d<T> operator*(const T &lhs, Matrix2d<T> rhs) {
 		return rhs*lhs;
 	}
-	template <typename T, typename H>
-	Matrix2d<T> operator/(Matrix2d<T> lhs, const H &rhs) {
+	template <typename T>
+	Matrix2d<T> operator/(Matrix2d<T> lhs, const T &rhs) {
 		for (T &el : lhs)
 			el /= rhs;
 		return lhs;
 	}
-	template <typename T, typename H>
-	Matrix2d<T> operator/(const H &lhs, Matrix2d<T> rhs) {
+	template <typename T>
+	Matrix2d<T> operator/(const T &lhs, Matrix2d<T> rhs) {
 		for (T &el : rhs)
 			el = lhs/el;
 		return rhs;

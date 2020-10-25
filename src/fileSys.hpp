@@ -7,6 +7,13 @@
 
 namespace fileSys {
 	template <typename T>
+	struct file {
+		std::vector<T> data;
+		int rows = 0;
+		int columns = 0;
+	};
+
+	template <typename T>
 	bool readFile(std::vector<std::string> &dataVec, const T path, const char delim) {
 		std::string line;
 		std::ifstream inStream(path);
