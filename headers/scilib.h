@@ -27,7 +27,11 @@ namespace scilib {
 	std::vector<T> movmedian(const std::vector<T> &v, int winSize) noexcept; 
 	template <typename T>
 	Matrix2d<T> movmedian(const Matrix2d<T> &matIn, int winSize) noexcept;
-
+	// template <typename T>
+	// T mean(std::vector<T> v) noexcept; 
+	template <typename T>
+	Matrix2d<T> mean(const Matrix2d<T> &matIn, const int direction = 0) noexcept;
+	
 	template <typename T>
 	Matrix2d<T> glm(Matrix2d<T> &X, Matrix2d<T> &Y) noexcept;
 }

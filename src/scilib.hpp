@@ -8,25 +8,25 @@ namespace scilib {
 	template <typename T>
 	class Matrix2d {
 		public:
-		std::vector<T> mat;
+		mutable std::vector<T> data;
 
 		Matrix2d() {}
 		Matrix2d(const int rows, const int cols) {
 			this->rows = rows;
 			this->cols = cols;
-			this->mat.resize(rows*cols,0);
+			this->data.resize(rows*cols,0);
 		}
-		Matrix2d(const int rows, const int cols, std::vector<T> &mat) {
-			int mod = mat.size() % rows;
+		Matrix2d(const int rows, const int cols, std::vector<T> &data) {
+			int mod = data.size() % rows;
 			if (mod != 0) {
 				std::cerr << "Rows and/or columns don't match input vector size\n";
 				return;
 			}
 			this->rows = rows;
 			this->cols = cols;
-			this->mat.resize(rows*cols);
-			T *val = &mat.at(0);
-			for (T &el : this->mat)
+			this->data.resize(rows*cols);
+			T *val = &data.at(0);
+			for (T &el : this->data)
 				el = *val++;
 		}
 		Matrix2d(fileSys::file<T> &file) {
@@ -37,21 +37,21 @@ namespace scilib {
 			}
 			this->rows = file.rows;
 			this->cols = file.columns;
-			this->mat.resize(file.rows * file.columns);
+			this->data.resize(file.rows * file.columns);
 			T *val = &file.data.at(0);
-			for (T &el : this->mat)
+			for (T &el : this->data)
 				el = *val++;
 		}
 		~Matrix2d() { 
 			
 		}
 
-		auto begin() { return this->mat.begin(); }
-		auto end() { return this->mat.end(); }
+		auto begin() { return this->data.begin(); }
+		auto end() { return this->data.end(); }
 
 		void print() const {
 			int i = 0;
-			for (const T &el : this->mat) {
+			for (const T &el : this->data) {
 				std::cout << el << "\t";
 				++i;
 				if (i == this->cols) {
@@ -64,7 +64,7 @@ namespace scilib {
 		void resize(int rows, int cols) {
 			this->rows = rows;
 			this->cols = cols;
-			this->mat.resize(rows*cols,0);
+			this->data.resize(rows*cols,0);
 		}
 		
 		int getRows() const {
@@ -76,25 +76,25 @@ namespace scilib {
 		}
 
 		void popRow(int row) {
-			this->mat.erase(this->mat.begin() + this->cols*row, this->mat.begin() + (row+1)*this->cols);
+			this->data.erase(this->data.begin() + this->cols*row, this->data.begin() + (row+1)*this->cols);
 			this->rows -= 1;
 		}
 
 		void popColumn(int col) {
 			int max = (this->cols - 1) * this->rows;
 			for (int i = col; i < max; i += this->cols-1) {
-				this->mat.erase(this->mat.begin()+i);
+				this->data.erase(this->data.begin()+i);
 			}
 			this->cols -= 1;
 		}
 
-		T &operator()(int row, int col) noexcept {
+		T &operator()(int row, int col) const {
 			int pos = col + row*this->cols;
 			if (pos < 0 || pos > this->cols*this->rows) {
 				std::cout << "Warning: Index " << pos << " out of bounds. Returning end().\n";
-				return *this->mat.end();
+				return *this->data.end();
 			}
-			return this->mat.at(col + row*this->cols);
+			return this->data.at(col + row*this->cols);
 		}
 
 		// TODO: optimize this. E.g., remove matOut and return matRight.
@@ -110,8 +110,8 @@ namespace scilib {
 			int offset1 = 0;
 			int offset2 = 0;
 			for (T &el : matOut) {
-				T *val1 = &this->mat.at(offset1);
-				T *val2 = &matRight.mat.at(offset2);
+				T *val1 = &this->data.at(offset1);
+				T *val2 = &matRight.data.at(offset2);
 				for (int i = 0; i < columns; ++i) {
 					el += *(val1++) * *(val2);
 					val2 += matRight.cols;
@@ -130,9 +130,9 @@ namespace scilib {
 			int offset = 0;
 			int row = 0;
 			T *val = nullptr;
-			for (T &el : this->mat) {
+			for (T &el : this->data) {
 				if (row % matOut.rows == 0) {
-					val = &matOut.mat.at(offset++);
+					val = &matOut.data.at(offset++);
 					row = 0;
 				}
 				*(val + row*matOut.cols) = el;
@@ -148,11 +148,11 @@ namespace scilib {
 			}
 			Matrix2d<T> matOut(this->rows, this->cols);
 			if (matOut.getRows() == 1) {
-				matOut(0,0) = 1/this->mat.at(0);
+				matOut(0,0) = 1/this->data.at(0);
 			} else {
 				T det = scilib::determinant(*this);
 				Matrix2d<T> adj = scilib::adjugate(*this);
-				T *val = &matOut.mat.at(0);
+				T *val = &matOut.data.at(0);
 				for (T &a : adj) {
 					*val++ = a/det;
 				}
@@ -188,52 +188,6 @@ namespace scilib {
 		}
 		return det;
 	}
-	// This did not work btw.
-	// template <typename T>
-	// T determinant(Matrix2d<T> &matIn) {
-	// 	if (matIn.getRows() != matIn.getColumns()) {
-	// 		std::cerr << "Cannot calculate determinant of a non square matrix\n";
-	// 		return 0;
-	// 	}
-	// 	if (matIn.getRows() == 1)
-	// 		return matIn(0,0);
-	// 	else if (matIn.getRows() == 2)
-	// 		return matIn(0,0)*matIn(1,1) - matIn(0,1)*matIn(1,0);
-	// 	int det = 0;
-	// 	int rows = matIn.getRows();
-	// 	int cols = matIn.getColumns();
-	// 	int pos = 1;
-	// 	int tmp = 0;
-	// 	for (int i = 0; i < cols; ++i) {
-	// 		tmp = matIn(0,i);
-	// 		pos = i+1;
-	// 		for (int k = 1; k < rows; ++k) {
-	// 			if (pos == cols) {
-	// 				pos = 0;
-	// 				tmp *= matIn(k, pos); 
-	// 			} else {
-	// 				tmp *= matIn(k, pos); 
-	// 			}
-	// 			++pos;
-	// 		}
-	// 		det += tmp;
-	// 	}
-	// 	for (int i = 0; i < cols; ++i) {
-	// 		tmp = matIn(0,i);
-	// 		pos = i-1;
-	// 		for (int k = 1; k < rows; ++k) {
-	// 			if (pos == -1) {
-	// 				pos = cols-1;
-	// 				tmp *= matIn(k, pos); 
-	// 			} else {
-	// 				tmp *= matIn(k, pos); 
-	// 			}
-	// 			--pos;
-	// 		}
-	// 		det -= tmp;
-	// 	}
-	// 	return det;
-	// }
 
 	template <typename T>
 	Matrix2d<T> adjugate(Matrix2d<T> &matIn) {
@@ -314,6 +268,38 @@ namespace scilib {
 	Matrix2d<T> movmedian(const Matrix2d<T> &matIn, int winSize) noexcept {
 		std::vector<T> tmp = movmedian(matIn.mat, winSize);
 		Matrix2d<T> matOut(matIn.getRows(), matIn.getColumns(), tmp);
+		return matOut;
+	}
+
+	template <typename T>
+	Matrix2d<T> mean(const Matrix2d<T> &matIn, const int direction) noexcept {
+		Matrix2d<T> matOut;
+		const int rows = matIn.getRows();
+		const int cols = matIn.getColumns();
+		if (direction == 0) {	
+			int sum = 0;
+			for (const T &el : matIn.data)
+				sum += el;
+			matOut.data.emplace_back(sum/(rows*cols));
+		} else if (direction == 1) {
+			matOut.resize(1,cols);
+			int col = 0;
+			for (T &el : matOut) {
+				for (int row = 0; row < rows; ++row) {
+					el += matIn(row,col)/rows;
+				}
+				++col;
+			}
+		} else if (direction == 2) {
+			matOut.resize(rows,1);
+			int row = 0;
+			for (T &el : matOut) {
+				for (int col = 0; col < cols; ++col) {
+					el += matIn(row,col)/cols;
+				}
+				++row;
+			}
+		}
 		return matOut;
 	}
 

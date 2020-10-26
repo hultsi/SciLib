@@ -18,7 +18,8 @@ void testFun() {
 	scilib::Matrix2d<double> mat2(file);
 	//scilib::Matrix2d<double> mat3 = mat2*mat2;
 	
-	std::cout << scilib::determinant(mat2) << "\n";
+	scilib::mean(mat2,1).print();
+	scilib::mean(mat2,2).print();
 	//scilib::glm(mat2,mat1).print();
 	// auto start = high_resolution_clock::now();
 	// for (int i = 0; i < 10000; ++i)
