@@ -1,3 +1,10 @@
 .vscode/
 data/
-main
+build/
+release/
+
+test/catch/
+test/build/
+
+sbuild
+stest

@@ -3,6 +3,14 @@
 #include <algorithm>
 
 #include "fileSys.h"
+#include "error.h"
+
+#if DEBUG == 1	
+	#define errMsg(msg) std::cerr << "Error in file " << __FILE__ << " at line " << __LINE__ << ":\n --- " << msg << "\n"
+#else
+	#define errMsg(msg)
+#endif
+
 
 namespace scilib {
 	template <typename T>
@@ -11,36 +19,26 @@ namespace scilib {
 		mutable std::vector<T> data;
 
 		Matrix2d() {}
-		Matrix2d(const int rows, const int cols) {
-			this->rows = rows;
-			this->cols = cols;
-			this->data.resize(rows*cols,0);
+		Matrix2d(const int rows, const int cols) : rows(rows), cols(cols), size(rows*cols) {
+			this->data.resize(size);
 		}
-		Matrix2d(const int rows, const int cols, std::vector<T> &data) {
-			int mod = data.size() % rows;
-			if (mod != 0) {
-				std::cerr << "Rows and/or columns don't match input vector size\n";
-				return;
+		Matrix2d(std::vector<T> &data, const int rows, const int cols) : data(data), rows(rows), cols(cols), size(rows*cols) {
+			if (data.size() != (unsigned) this->size) {
+				errMsg("Rows and/or columns don't match input vector size");
+				this->rows = 0;
+				this->cols = 0;
+				this->size = 0;
+				this->data.clear();
 			}
-			this->rows = rows;
-			this->cols = cols;
-			this->data.resize(rows*cols);
-			T *val = &data.at(0);
-			for (T &el : this->data)
-				el = *val++;
 		}
-		Matrix2d(fileSys::file<T> &file) {
-			int mod = file.data.size() % file.rows;
-			if (mod != 0) {
-				std::cerr << "Rows and/or columns don't match input vector size\n";
-				return;
+		Matrix2d(fileSys::file<T> &file) : data(file.data), rows(file.rows), cols(file.columns), size(file.rows*file.columns) {
+			if (data.size() != (unsigned) this->size) {
+				errMsg("Rows and/or columns don't match input vector size");
+				this->rows = 0;
+				this->cols = 0;
+				this->size = 0;
+				this->data.clear();
 			}
-			this->rows = file.rows;
-			this->cols = file.columns;
-			this->data.resize(file.rows * file.columns);
-			T *val = &file.data.at(0);
-			for (T &el : this->data)
-				el = *val++;
 		}
 		~Matrix2d() { 
 			
@@ -64,7 +62,8 @@ namespace scilib {
 		void resize(int rows, int cols) {
 			this->rows = rows;
 			this->cols = cols;
-			this->data.resize(rows*cols,0);
+			this->size = rows*cols;
+			this->data.resize(this->size, 0);
 		}
 		
 		int getRows() const {
@@ -78,6 +77,7 @@ namespace scilib {
 		void popRow(int row) {
 			this->data.erase(this->data.begin() + this->cols*row, this->data.begin() + (row+1)*this->cols);
 			this->rows -= 1;
+			this->size = this->rows*this->cols;
 		}
 
 		void popColumn(int col) {
@@ -86,19 +86,27 @@ namespace scilib {
 				this->data.erase(this->data.begin()+i);
 			}
 			this->cols -= 1;
+			this->size = this->rows*this->cols;
+		}
+
+		T &operator()(int ind) const {
+			if (ind < 0 || ind > this->cols*this->rows) {
+				errMsg("Index out of bounds. Returning end().\n");
+				return *this->data.end();
+			}
+			return this->data.at(ind);
 		}
 
 		T &operator()(int row, int col) const {
-			int pos = col + row*this->cols;
-			if (pos < 0 || pos > this->cols*this->rows) {
-				std::cout << "Warning: Index " << pos << " out of bounds. Returning end().\n";
+			int ind = col + row*this->cols; 
+			if (ind < 0 || ind > this->cols*this->rows) {
+				errMsg("Index out of bounds. Returning end().\n");
 				return *this->data.end();
 			}
-			return this->data.at(col + row*this->cols);
+			return this->data.at(ind);
 		}
 
-		// TODO: optimize this. E.g., remove matOut and return matRight.
-		Matrix2d<T> operator*(Matrix2d<T> matRight) {
+		Matrix2d<T> operator*(const Matrix2d<T> &matRight) {
 			Matrix2d<T> matOut;
 			const int columns = this->cols;
 			const int rows = matRight.rows;
@@ -125,7 +133,7 @@ namespace scilib {
 			return matOut;
 		}
 
-		Matrix2d<T> operator~() {
+		Matrix2d<T> operator~() const {
 			Matrix2d<T> matOut(this->cols, this->rows);
 			int offset = 0;
 			int row = 0;
@@ -141,7 +149,7 @@ namespace scilib {
 			return matOut;
 		}
 
-		Matrix2d<T> operator!() {
+		Matrix2d<T> operator!() const {
 			if (this->getRows() != this->getColumns()) {
 				std::cerr << "Non square matrix is not invertible\n";
 				return *this;
@@ -163,12 +171,13 @@ namespace scilib {
 		private:
 		int rows = 0;
 		int cols = 0;
+		int size = 0;
 	};
 }
 
 namespace scilib {
 	template <typename T>
-	T determinant(Matrix2d<T> &dataMat) {
+	T determinant(const Matrix2d<T> &dataMat) {
 		if (dataMat.getRows() != dataMat.getColumns()) {
 			std::cerr << "Non square matrix is not invertible\n";
 			return 0;
@@ -190,7 +199,7 @@ namespace scilib {
 	}
 
 	template <typename T>
-	Matrix2d<T> adjugate(Matrix2d<T> &matIn) {
+	Matrix2d<T> adjugate(const Matrix2d<T> &matIn) {
 		if (matIn.getRows() != matIn.getColumns()) {
 			std::cerr << "Non square matrix is not invertible\n";
 			return matIn;
@@ -220,7 +229,8 @@ namespace scilib {
 	}
 
 	template <typename T>
-	T median(std::vector<T> v) noexcept {
+	T median(const std::vector<T> &vec) noexcept {
+		std::vector<T> v = vec;
 		const int length = v.size();
 		if (length % 2 == 0) {
 			const int halfLen = length/2;
@@ -304,7 +314,7 @@ namespace scilib {
 	}
 
 	template <typename T>
-	Matrix2d<T> glm(Matrix2d<T> &X, Matrix2d<T> &Y) noexcept {
+	Matrix2d<T> glm(const Matrix2d<T> &X, const Matrix2d<T> &Y) noexcept {
 		if (X.getRows() != Y.getRows())
 			return Matrix2d<T>();
 		return (!(~X*X))*(~X)*Y;

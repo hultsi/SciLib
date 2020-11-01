@@ -1,99 +1,73 @@
-### SciLib
+# **SciLib**
 
 Library for matrix manipulation, modeling etc. At the moment the library includes 2 namespaces, fileSys and scilib.
-	- fileSys is used for loading/saving files from/to hard drive
-	- scilib is used for matrix manipulations etc.
 
-```C++
-namespace scilib {
-	// Class specific functionalities below
-	template <typename T>
-	class Matrix2d;
+## Includes
+- ## fileSys.h
+	- Used for reading and loading data from from/to hard drive
+- ## scilib.h
+	- Contains the Matrix2d class and functions for manipulating it
 
-	// Calculates Matrix2d determinant
-	template <typename T>
-	T determinant(Matrix2d<T> &matIn);
-	// Calculates Matrix2d adjugate
-	template <typename T>
-	Matrix2d<T> adjugate(Matrix2d<T> &matIn);
+# Documentation
 
-	template <typename T>
-	T median(std::vector<T> &v) noexcept; 
-	template <typename T>
-	T median(Matrix2d<T> &matIn) noexcept;
-	template <typename T>
-	std::vector<T> movmedian(std::vector<T> &v, int winSize); 
-	template <typename T>
-	Matrix2d<T> movmedian(Matrix2d<T> &matIn, int winSize);
+## <span style="position: relative; display: inline-block; left: 50%; transform: translateX(-50%); font-size: 25px">**<fileSys.h>**</span>
+## **Contains**
+- <span style="font-size: 18px">struct file< T ></span>
+- <span style="font-size: 18px">bool readFile< T >(file std::string, const T, const char)</span>
 
-	// Overloaded operators for Matrix2d +,-,*,/ (int/double/etc.)
-	template <typename T, typename H>
-	Matrix2d<T> operator+(Matrix2d<T> lhs, const H &rhs);
-	template <typename T, typename H>
-	Matrix2d<T> operator+(const H &lhs, Matrix2d<T> rhs);
-	template <typename T, typename H>
-	Matrix2d<T> operator-(Matrix2d<T> lhs, const H &rhs);
-	template <typename T, typename H>
-	Matrix2d<T> operator-(const H &lhs, Matrix2d<T> rhs);
-	template <typename T, typename H>
-	Matrix2d<T> operator*(Matrix2d<T> lhs, const H &rhs);
-	template <typename T, typename H>
-	Matrix2d<T> operator*(const H &lhs, Matrix2d<T> rhs);
-	template <typename T, typename H>
-	Matrix2d<T> operator/(Matrix2d<T> lhs, const H &rhs);
-	template <typename T, typename H>
-	Matrix2d<T> operator/(const H &lhs, Matrix2d<T> rhs);
-}
-```
+</br>
+
+## <span style="letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,.5); padding: 2px">struct fileSys::file< T ></span>
 
 ```C++
 template <typename T>
-class scilib::Matrix2d {
-	public:
-		// Matrix data
-		std::vector<T> mat;
-		// Constructors/Destructors
-		Matrix2d();
-		Matrix2d(const int rows, const int cols);
-		Matrix2d(const int rows, const int cols, std::vector<T> &mat);
-		Matrix2d(fileSys::file<T> &file);
-		~Matrix2d();
-		// Iterators for the vector holding the matrix values
-		auto begin() { return this->mat.begin(); }
-		auto end() { return this->mat.end(); }
-		// Print contents of the matrix
-		void print();
-		// Resize matrix and init with values of 0
-		void resize(int rows, int cols);
-		// Get number of rows in the matrix currently
-		int getRows();
-		// Get number of columns in the matrix currently
-		int getColumns();
-		// Remove row from the matrix
-		void popRow(int row);
-		// Remove column from the matrix
-		void popColumn(int col);
-		// Operator to select element from the matrix at (row,col)
-		T &operator()(int row, int col) noexcept;
-		// Matrix product
-		Matrix2d<T> operator*(Matrix2d<T> &matRight);
-		// Matrix transpose operator
-		Matrix2d<T> operator~();
-		// Matrix inverse operator
-		Matrix2d<T> operator!();
-}
+struct fileSys::file {
+	std::vector<T> data;
+	int rows = 0;
+	int columns = 0;
+};
 ```
 
+Used to load data files into memory within a 1 dimensional vector while also preserving the knowledge of the rows and columns within the loaded data file. This can be used to initialize matrix::Matrix2d< T >.</br>
+
+## <span style="letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,.5); padding: 2px">bool fileSys::readFile< T >()</span>
+
 ```C++
-namespace fileSys {
-	template <typename T>
-	struct file;
-	
-	template <typename T>
-	bool readFile(std::vector<std::string> &dataVec, const T path, const char delim = '\t');
-	template <typename T>
-	bool readFile(file<std::string> &dataStruct, const T path, const char delim = '\t');
-	template <typename T>
-	bool readFile(file<double> &dataStruct, const T path, const char delim = '\t');
-}
+template <typename T>
+bool readFile(file<std::string> &dataStruct, const T path, const char delim = '\t');
+template <typename T>
+bool readFile(file<int> &dataStruct, const T path, const char delim = '\t');
+template <typename T>
+bool readFile(file<float> &dataStruct, const T path, const char delim = '\t');
+template <typename T>
+bool readFile(file<double> &dataStruct, const T path, const char delim = '\t');
+```
+
+Used to load text file from specified path to an std::vector within fileSys::file.
+- **dataStruct** is a reference to the fileSys::file struct where the data is saved into
+- **path** is the path to the text file
+- **delim** is the delimiter used in the text file
+
+</br>
+
+## <span style="position: relative; display: inline-block; left: 50%; transform: translateX(-50%); font-size: 25px">**<scilib.h>**</span>
+## **Contains**
+- <span style="font-size: 18px">class Matrix2d< T ></span>
+- <span style="font-size: 18px">T determinant< T >(const Matrix2d< T > &)</span>
+- ...
+
+## <span style="letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,.5); padding: 2px">class matrix::Matrix2d< T ></span>
+
+```C++
+template <typename T>
+class Matrix2d;
+```
+
+The matrix class of the library. Details about the class itself later on.
+
+## <span style="letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,.5); padding: 2px">T matrix::determinant< T >()</span>
+
+```C++
+template <typename T>
+T determinant(const Matrix2d<T> &matIn);
 ```
