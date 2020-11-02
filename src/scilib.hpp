@@ -22,7 +22,7 @@ namespace scilib {
 		Matrix2d(const int rows, const int cols) : rows(rows), cols(cols), size(rows*cols) {
 			this->data.resize(size);
 		}
-		Matrix2d(std::vector<T> &data, const int rows, const int cols) : data(data), rows(rows), cols(cols), size(rows*cols) {
+		Matrix2d(const std::vector<T> &data, const int rows, const int cols) : data(data), rows(rows), cols(cols), size(rows*cols) {
 			if (data.size() != (unsigned) this->size) {
 				errMsg("Rows and/or columns don't match input vector size");
 				this->rows = 0;
@@ -31,7 +31,7 @@ namespace scilib {
 				this->data.clear();
 			}
 		}
-		Matrix2d(fileSys::file<T> &file) : data(file.data), rows(file.rows), cols(file.columns), size(file.rows*file.columns) {
+		Matrix2d(const fileSys::file<T> &file) : data(file.data), rows(file.rows), cols(file.columns), size(file.rows*file.columns) {
 			if (data.size() != (unsigned) this->size) {
 				errMsg("Rows and/or columns don't match input vector size");
 				this->rows = 0;
@@ -44,8 +44,8 @@ namespace scilib {
 			
 		}
 
-		auto begin() { return this->data.begin(); }
-		auto end() { return this->data.end(); }
+		auto begin() const { return this->data.begin(); }
+		auto end() const { return this->data.end(); }
 
 		void print() const {
 			int i = 0;
@@ -60,10 +60,14 @@ namespace scilib {
 		}
 
 		void resize(int rows, int cols) {
+			if (rows < 0 || cols < 0) {
+				errMsg("Index out of bounds");
+				return;
+			}
 			this->rows = rows;
 			this->cols = cols;
 			this->size = rows*cols;
-			this->data.resize(this->size, 0);
+			this->data.resize(this->size);
 		}
 		
 		int getRows() const {
@@ -75,12 +79,14 @@ namespace scilib {
 		}
 
 		void popRow(int row) {
+			if (row < 0) return;
 			this->data.erase(this->data.begin() + this->cols*row, this->data.begin() + (row+1)*this->cols);
 			this->rows -= 1;
 			this->size = this->rows*this->cols;
 		}
 
 		void popColumn(int col) {
+			if (col < 0) return;
 			int max = (this->cols - 1) * this->rows;
 			for (int i = col; i < max; i += this->cols-1) {
 				this->data.erase(this->data.begin()+i);
@@ -91,8 +97,8 @@ namespace scilib {
 
 		T &operator()(int ind) const {
 			if (ind < 0 || ind > this->cols*this->rows) {
-				errMsg("Index out of bounds. Returning end().\n");
-				return *this->data.end();
+				errMsg("Index out of bounds. Returning (0,0).\n");
+				return this->data.at(0);
 			}
 			return this->data.at(ind);
 		}
@@ -100,18 +106,18 @@ namespace scilib {
 		T &operator()(int row, int col) const {
 			int ind = col + row*this->cols; 
 			if (ind < 0 || ind > this->cols*this->rows) {
-				errMsg("Index out of bounds. Returning end().\n");
-				return *this->data.end();
+				errMsg("Index out of bounds. Returning (0,0).\n");
+				return this->data.at(0);
 			}
 			return this->data.at(ind);
 		}
 
-		Matrix2d<T> operator*(const Matrix2d<T> &matRight) {
+		Matrix2d<T> operator*(const Matrix2d<T> &matRight) const {
 			Matrix2d<T> matOut;
 			const int columns = this->cols;
 			const int rows = matRight.rows;
 			if (columns != rows) {
-				std::cerr << "Left matrix columns != right matrix rows, " << columns << " != " << rows << "\n";
+				errMsg("Left matrix columns != right matrix rows\n");
 				return matOut;
 			}
 			matOut.resize(this->rows, matRight.cols);
@@ -159,6 +165,11 @@ namespace scilib {
 				matOut(0,0) = 1/this->data.at(0);
 			} else {
 				T det = scilib::determinant(*this);
+				if (std::abs(det) < 1e-15) {
+					errMsg("Matrix is close to singular");
+					return matOut;
+				}
+
 				Matrix2d<T> adj = scilib::adjugate(*this);
 				T *val = &matOut.data.at(0);
 				for (T &a : adj) {

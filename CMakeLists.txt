@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.5)
 option(test "test" 0)
 
 # Project name
-project(scilib VERSION 0.0.1)
+project(SciLib VERSION 0.0.1)
 
 if (NOT test)
 	# Define variables
@@ -16,7 +16,7 @@ if (NOT test)
 	)
 
 	# Add compiler options
-	add_compile_options(-Wall -Wextra -Wpedantic -g)
+	add_compile_options(-Wall -Wextra -Wpedantic -g -DDEBUG=1)
 
 	# Specify standard
 	set(CMAKE_CXX_STANDARD 17)
@@ -34,10 +34,10 @@ if (NOT test)
 	)
 else()
 	# Define variables
-	set(SOURCES test/test_main.o test/test_Matrix2d.cpp)
+	set(SOURCES test/test_main.o test/test_Matrix2d.cpp test/test_scilib.cpp)
 
 	# Create executable
-	add_executable(scilib 
+	add_executable(scilib_test
 		${SOURCES}
 	)
 
@@ -51,11 +51,11 @@ else()
 	configure_file(include/scilib.h include/scilib.h)
 
 	# Includes
-	target_include_directories(scilib PUBLIC include src)
+	target_include_directories(scilib_test PUBLIC include src)
 
 	# Move scilib to ../release
-	add_custom_command(TARGET scilib
+	add_custom_command(TARGET scilib_test
 		POST_BUILD
-		COMMAND mv scilib ..
+		COMMAND mv scilib_test ..
 	)
 endif(NOT test)
