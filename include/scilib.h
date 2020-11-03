@@ -13,6 +13,12 @@ namespace scilib {
 	class Matrix2d;
 }
 
+// Refactor scilib so that non-matrix2d are in their own?
+namespace scilib {
+	template <typename T>
+	T median(const std::vector<T> &vecIn) noexcept;
+}
+
 namespace scilib {
 	template <typename T>
 	T determinant(const Matrix2d<T> &matIn);
@@ -20,15 +26,9 @@ namespace scilib {
 	Matrix2d<T> adjugate(const Matrix2d<T> &matIn);
 
 	template <typename T>
-	T median(const std::vector<T> &vec) noexcept; 
+	Matrix2d<T> median(const Matrix2d<T> &matIn, const int direction = 0) noexcept;
 	template <typename T>
-	T median(const Matrix2d<T> &matIn) noexcept;
-	template <typename T>
-	std::vector<T> movmedian(const std::vector<T> &v, int winSize) noexcept; 
-	template <typename T>
-	Matrix2d<T> movmedian(const Matrix2d<T> &matIn, int winSize) noexcept;
-	// template <typename T>
-	// T mean(std::vector<T> v) noexcept; 
+	Matrix2d<T> movmedian(const Matrix2d<T> &matIn, const int winSize, const int direction = 0) noexcept;
 	template <typename T>
 	Matrix2d<T> mean(const Matrix2d<T> &matIn, const int direction = 0) noexcept;
 	
