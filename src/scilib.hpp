@@ -217,6 +217,7 @@ namespace scilib {
 }
 
 namespace scilib {
+	// Make this return Matrix2d
 	template <typename T>
 	T determinant(const Matrix2d<T> &dataMat) {
 		if (dataMat.getRows() != dataMat.getColumns()) {
@@ -360,7 +361,7 @@ namespace scilib {
 					std::vector<T> tmp(tmpMat.data.begin() + pos - posMod, tmpMat.data.begin() + posRight);
 					el = scilib::median(tmp);
 				} else if (posMod > tmpMat.getColumns()-winHalf-1) {
-					std::vector<T> tmp(tmpMat.data.begin() + pos - posMod + 1, tmpMat.data.begin() + pos + (tmpMat.getColumns() - posMod));
+					std::vector<T> tmp(tmpMat.data.begin() + posLeft, tmpMat.data.begin() + pos + (tmpMat.getColumns() - posMod));
 					el = scilib::median(tmp);
 				} else {
 					std::vector<T> tmp(tmpMat.data.begin()+posLeft, tmpMat.data.begin()+posRight);
@@ -379,7 +380,7 @@ namespace scilib {
 					std::vector<T> tmp(matIn.data.begin() + pos - posMod, matIn.data.begin() + posRight);
 					el = scilib::median(tmp);
 				} else if (posMod > matIn.getColumns()-winHalf-1) {
-					std::vector<T> tmp(matIn.data.begin() + pos - posMod + 1, matIn.data.begin() + pos + (matIn.getColumns() - posMod));
+					std::vector<T> tmp(matIn.data.begin() + posLeft, matIn.data.begin() + pos + (matIn.getColumns() - posMod));
 					el = scilib::median(tmp);
 				} else {
 					std::vector<T> tmp(matIn.data.begin()+posLeft, matIn.data.begin()+posRight);
@@ -399,7 +400,7 @@ namespace scilib {
 		const int rows = matIn.getRows();
 		const int cols = matIn.getColumns();
 		if (direction == 0) {	
-			int sum = 0;
+			T sum = 0;
 			for (const T &el : matIn.data)
 				sum += el;
 			matOut.data.emplace_back(sum/(rows*cols));

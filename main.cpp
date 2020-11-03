@@ -32,6 +32,7 @@ void testFun() {
 	
 	//timer([&mat1,&mat2](){ mat1*mat2; }, "timer 1");
 	scilib::Matrix2d<double> mat3 = scilib::movmedian(mat1,3,1);
+	mat1.print();
 	mat3.print();
 }
 
