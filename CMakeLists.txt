@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-# Options TODO: CREATE TEST BUILD
+# Options
 option(test "test" 0)
 
 # Project name
@@ -56,6 +56,6 @@ else()
 	# Move scilib to ../release
 	add_custom_command(TARGET scilib_test
 		POST_BUILD
-		COMMAND mv scilib_test ..
+		COMMAND mv scilib_test ../release
 	)
 endif(NOT test)

@@ -1,11 +1,23 @@
 #include <iostream>
 #include <string>
 #include <chrono>
+#include <algorithm>
 
 #include "scilib.h"
 #include "fileSys.h"
 
 using namespace std::chrono;
+
+void timer(std::function<void()> fun, std::string timerName = "something") {
+	const int loops = 10000;
+	auto start = high_resolution_clock::now();
+	for (int i = 0; i < loops; ++i)
+		fun();
+	auto stop = high_resolution_clock::now();
+	auto duration = duration_cast<microseconds>(stop - start); 
+	std::cout << "Ran " << loops << " loops of " << timerName <<
+			" -- Result: " << duration.count() << " milliseconds\n";
+}
 
 void testFun() {
 	fileSys::file<int> file1;
@@ -17,23 +29,10 @@ void testFun() {
 
 	scilib::Matrix2d<double> mat1(file3);
 	scilib::Matrix2d<double> mat2(file3);
-	mat1*mat2;
-	// mat1(0,0) = 1;
-	// mat1(1,0) = 2;
-	// mat1(2,0) = 3;
-	// mat1(3,0) = 4;
-	// scilib::Matrix2d<double> mat2(file);
-	// //scilib::Matrix2d<double> mat3 = mat2*mat2;
 	
-	// // scilib::mean(mat2,1).print();
-	// // scilib::mean(mat2,2).print();
-	// (mat2*scilib::glm(mat2,mat1)).print();
-	// auto start = high_resolution_clock::now();
-	// for (int i = 0; i < 10000; ++i)
-	// 	fileSys::readFile(file, "./data/data.txt", '\t');
-	// auto stop = high_resolution_clock::now();
-	// auto duration = duration_cast<microseconds>(stop - start); 
-	// std::cout << duration.count() << "\n";
+	//timer([&mat1,&mat2](){ mat1*mat2; }, "timer 1");
+	scilib::Matrix2d<double> mat3 = scilib::movmedian(mat1,3,1);
+	mat3.print();
 }
 
 int main() {

@@ -118,7 +118,7 @@ namespace scilib {
 			else if (matRight.getColumns() != this->getColumns())
 				return false;
 			const T *elRight = &matRight.data.at(0);
-			for (const T &el : this)
+			for (const T &el : *this)
 				if (el != *elRight++)
 					return false;
 			return true;
@@ -352,9 +352,43 @@ namespace scilib {
 				++posRight;
 			}
 		} else if (direction == 1) {
-
+			Matrix2d<T> tmpMat = ~matIn; // TODO: use indexing instead of transpose
+			int posMod = 0;
+			for (T &el : matOut) {
+				posMod = pos % tmpMat.getColumns();
+				if (posMod < winHalf) {
+					std::vector<T> tmp(tmpMat.data.begin() + pos - posMod, tmpMat.data.begin() + posRight);
+					el = scilib::median(tmp);
+				} else if (posMod > tmpMat.getColumns()-winHalf-1) {
+					std::vector<T> tmp(tmpMat.data.begin() + pos - posMod + 1, tmpMat.data.begin() + pos + (tmpMat.getColumns() - posMod));
+					el = scilib::median(tmp);
+				} else {
+					std::vector<T> tmp(tmpMat.data.begin()+posLeft, tmpMat.data.begin()+posRight);
+					el = scilib::median(tmp);
+				}
+				++pos;
+				++posLeft;
+				++posRight;
+			}
+			matOut = ~matOut;
 		} else if (direction == 2) {
-			
+			int posMod = 0;
+			for (T &el : matOut) {
+				posMod = pos % matIn.getColumns();
+				if (posMod < winHalf) {
+					std::vector<T> tmp(matIn.data.begin() + pos - posMod, matIn.data.begin() + posRight);
+					el = scilib::median(tmp);
+				} else if (posMod > matIn.getColumns()-winHalf-1) {
+					std::vector<T> tmp(matIn.data.begin() + pos - posMod + 1, matIn.data.begin() + pos + (matIn.getColumns() - posMod));
+					el = scilib::median(tmp);
+				} else {
+					std::vector<T> tmp(matIn.data.begin()+posLeft, matIn.data.begin()+posRight);
+					el = scilib::median(tmp);
+				}
+				++pos;
+				++posLeft;
+				++posRight;
+			}
 		}
 		return matOut;
 	}
