@@ -214,6 +214,15 @@ namespace scilib {
 			return tmpVec.at(halfLen);
 		}
 	}
+
+	template <typename T>
+	T mean(const std::vector<T> &vecIn) noexcept {
+		std::vector<T> vecOut;
+		T sum = 0;
+		for (const T &el : vecIn)
+			sum += el;
+		return (sum/(vecIn.size()));
+	}
 }
 
 namespace scilib {
@@ -332,11 +341,13 @@ namespace scilib {
 			return matOut;
 		
 		const int ws = winSize + ((winSize+1) % 2); // Make sure winSize == odd
-		const int winHalf = (winSize+1)/2 - 1;
+		const int winHalf = (ws+1)/2 - 1;
 		int pos = 0;
 		int posLeft = -winHalf;
 		int posRight = winHalf+1;
 		if (direction == 0) {
+			if (winSize > matOut.getColumns()*matOut.getRows())
+				return matOut;
 			for (T &el : matOut) {
 				if (pos < winHalf) {
 					std::vector<T> tmp(matIn.data.begin(), matIn.data.begin()+posRight);
@@ -353,6 +364,8 @@ namespace scilib {
 				++posRight;
 			}
 		} else if (direction == 1) {
+			if (winSize > matOut.getRows())
+				return matOut;
 			Matrix2d<T> tmpMat = ~matIn; // TODO: use indexing instead of transpose
 			int posMod = 0;
 			for (T &el : matOut) {
@@ -373,6 +386,8 @@ namespace scilib {
 			}
 			matOut = ~matOut;
 		} else if (direction == 2) {
+			if (winSize > matOut.getColumns())
+				return matOut;
 			int posMod = 0;
 			for (T &el : matOut) {
 				posMod = pos % matIn.getColumns();
@@ -421,6 +436,84 @@ namespace scilib {
 					el += matIn(row,col)/cols;
 				}
 				++row;
+			}
+		}
+		return matOut;
+	}
+
+	template <typename T>
+	Matrix2d<T> movmean(const Matrix2d<T> &matIn, const int winSize, const int direction) noexcept {
+		const int rows = matIn.getRows();
+		const int columns = matIn.getColumns();
+		const int size = rows*columns;
+		Matrix2d<T> matOut = matIn; //(rows,columns);
+		if (winSize < 1)
+			return matOut;
+		
+		const int ws = winSize + ((winSize+1) % 2); // Make sure winSize == odd
+		const int winHalf = (ws+1)/2 - 1;
+		int pos = 0;
+		int posLeft = -winHalf;
+		int posRight = winHalf+1;
+		if (direction == 0) {
+			if (winSize > matOut.getColumns()*matOut.getRows())
+				return matOut;
+			for (T &el : matOut) {
+				if (pos < winHalf) {
+					std::vector<T> tmp(matIn.data.begin(), matIn.data.begin()+posRight);
+					el = scilib::mean(tmp);
+				} else if (pos > size-winHalf-1) {
+					std::vector<T> tmp(matIn.data.begin()+posLeft, matIn.data.begin()+size);
+					el = scilib::mean(tmp);
+				} else {
+					std::vector<T> tmp(matIn.data.begin()+posLeft, matIn.data.begin()+posRight);
+					el = scilib::mean(tmp);
+				}
+				++pos;
+				++posLeft;
+				++posRight;
+			}
+		} else if (direction == 1) {
+			if (winSize > matOut.getRows())
+				return matOut;
+			Matrix2d<T> tmpMat = ~matIn; // TODO: use indexing instead of transpose
+			int posMod = 0;
+			for (T &el : matOut) {
+				posMod = pos % tmpMat.getColumns();
+				if (posMod < winHalf) {
+					std::vector<T> tmp(tmpMat.data.begin() + pos - posMod, tmpMat.data.begin() + posRight);
+					el = scilib::mean(tmp);
+				} else if (posMod > tmpMat.getColumns()-winHalf-1) {
+					std::vector<T> tmp(tmpMat.data.begin() + posLeft, tmpMat.data.begin() + pos + (tmpMat.getColumns() - posMod));
+					el = scilib::mean(tmp);
+				} else {
+					std::vector<T> tmp(tmpMat.data.begin()+posLeft, tmpMat.data.begin()+posRight);
+					el = scilib::mean(tmp);
+				}
+				++pos;
+				++posLeft;
+				++posRight;
+			}
+			matOut = ~matOut;
+		} else if (direction == 2) {
+			if (winSize > matOut.getColumns())
+				return matOut;
+			int posMod = 0;
+			for (T &el : matOut) {
+				posMod = pos % matIn.getColumns();
+				if (posMod < winHalf) {
+					std::vector<T> tmp(matIn.data.begin() + pos - posMod, matIn.data.begin() + posRight);
+					el = scilib::mean(tmp);
+				} else if (posMod > matIn.getColumns()-winHalf-1) {
+					std::vector<T> tmp(matIn.data.begin() + posLeft, matIn.data.begin() + pos + (matIn.getColumns() - posMod));
+					el = scilib::mean(tmp);
+				} else {
+					std::vector<T> tmp(matIn.data.begin()+posLeft, matIn.data.begin()+posRight);
+					el = scilib::mean(tmp);
+				}
+				++pos;
+				++posLeft;
+				++posRight;
 			}
 		}
 		return matOut;
