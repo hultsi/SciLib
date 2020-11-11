@@ -10,8 +10,10 @@ Library for matrix manipulation, modeling etc. At the moment the library include
 
 # Documentation
 
-## <span style="position: relative; display: inline-block; left: 50%; transform: translateX(-50%); font-size: 25px">**<fileSys.h>**</span>
+## <span style="font-size: 28px">**fileSys.h**</span>
+
 ## **Contains**
+
 - <span style="font-size: 18px">struct file< T ></span>
 - <span style="font-size: 18px">bool readFile< T >(file std::string, const T, const char)</span>
 
@@ -50,24 +52,114 @@ Used to load text file from specified path to an std::vector within fileSys::fil
 
 </br>
 
-## <span style="position: relative; display: inline-block; left: 50%; transform: translateX(-50%); font-size: 25px">**<scilib.h>**</span>
+## <span style="font-size: 28px">**scilib.h**</span>
+
 ## **Contains**
 - <span style="font-size: 18px">class Matrix2d< T ></span>
-- <span style="font-size: 18px">T determinant< T >(const Matrix2d< T > &)</span>
-- ...
+- <span style="font-size: 18px">functions</span>
 
-## <span style="letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,.5); padding: 2px">class matrix::Matrix2d< T ></span>
+<br>
+
+## <span style="letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,.5); padding: 2px;">class scilib::Matrix2d< T ></span>
 
 ```C++
 template <typename T>
 class Matrix2d;
 ```
 
-The matrix class of the library. Details about the class itself later on.
+<p>The matrix class of the library. Basic element by element operations like summing, subtracting and dividing are included in the class. Calculating element by element product is done via the Matrix2d::dot() function since the * operator calculates matrix product.</p><br>
 
-## <span style="letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,.5); padding: 2px">T matrix::determinant< T >()</span>
+```C++
+void scilib::Matrix2d<T>::print() const
+```
+
+<p>Prints the matrix content.</p><br>
+
+```C++
+void scilib::Matrix2d<T>::resize(int rows, int cols)
+```
+
+<p>Resizes the matrix.</p><br>
+
+```C++
+int scilib::Matrix2d<T>::getRows() const
+```
+
+<p>Returns the amount of rows in the matrix.</p><br>
+
+```C++
+int scilib::Matrix2d<T>::getColumns() const
+```
+
+<p>Returns the amount of columns in the matrix.</p><br>
+
+```C++
+void scilib::Matrix2d<T>::popRow(int row)
+```
+
+<p>Removes a row from the matrix.</p><br>
+
+```C++
+void scilib::Matrix2d<T>::popColumn(int col)
+```
+
+<p>Removes a column from the matrix.</p><br>
+
+```C++
+T scilib::Matrix2d<T>::&operator()(int ind) const
+```
+
+<p>Returns a reference to the matrix element in the position "ind" calculated column-wise. Essentially gives you a simple interface to access the std::vector data which contains the matrix data.</p><br>
+
+```C++
+T scilib::Matrix2d<T>::&operator()(int row, int col) const
+```
+
+<p>Returns a reference to the matrix element in the given row-column position.</p><br>
+
+```C++
+bool scilib::Matrix2d<T>::operator==(const Matrix2d<T> &matRight) const 
+```
+
+<p>Comparison operator for matrices. Returns true if each element Matrix1(a,b) matches Matrix2(a,b).</p><br>
+
+```C++
+Matrix2d<T> scilib::Matrix2d<T>::operator*(const Matrix2d<T> &matRight) const
+```
+
+<p>Calculates matrix product and returns a new matrix holding the values.</p><br>
+
+```C++
+Matrix2d<T> scilib::Matrix2d<T>::operator~() const
+```
+
+<p>Calculates matrix transpose and returns the transposed matrix.</p><br>
+
+```C++
+Matrix2d<T> scilib::Matrix2d<T>::operator!() const
+```
+
+<p>Calculates matrix inverse and returns the inversed matrix.</p><br>
+
+## <span style="letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,.5); padding: 2px">Functions</span>
 
 ```C++
 template <typename T>
-T determinant(const Matrix2d<T> &matIn);
+T determinant(const Matrix2d<T> &matIn)
 ```
+
+<p>Calculates determinant of the input matrix.</p><br>
+
+```C++
+template <typename T>
+Matrix2d<T> adjugate(const Matrix2d<T> &matIn)
+```
+
+<p>Calculates adjugate of the input matrix.</p><br>
+
+```C++
+template <typename T>
+Matrix2d<T> median(const Matrix2d<T> &matIn, const int direction) noexcept
+```
+
+<p>Calculates median of the input matrix in given direction. Direction 0 calculates median of the whole matrix. Direction 1 calculates the median row-wise (for every column). Direction 2 calculates the median column-wise (for every row).</p><br>
