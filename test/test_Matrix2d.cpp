@@ -228,6 +228,7 @@ TEMPLATE_TEST_CASE("Matrix2d &operator()", "[matrix2d][string]", std::string)
 
 TEMPLATE_TEST_CASE("Matrix2d product operator*", "[matrix2d][numerics]", int, float, double)
 {
+		std::cout << "Testing inverse\n";
 	const fileSys::file<TestType> TEST_FILE = {{1, 2, 3, 5, 6, 7, 10, 12, 14}, 3, 3};
 	const fileSys::file<TestType> TEST_FILE2 = {{3, 2, 1, -1, -2, -3}, 2, 3};
 	const scilib::Matrix2d<TestType> mat1(TEST_FILE);
@@ -277,7 +278,10 @@ TEMPLATE_TEST_CASE("Matrix2d inverse operator!", "[matrix2d][numerics]", float, 
 	{
 		const scilib::Matrix2d<TestType> mat1(TEST_FILE2);
 		const scilib::Matrix2d<TestType> mat2 = !mat1;
+		const scilib::Matrix2d<TestType> result({0.454545, -0.212121, 0.121212, -0.272727, 0.060606, 0.393939, -0.090909, 0.242424, -0.424242},3,3);
 		const double epsilon = 1e-6;
-		REQUIRE(std::abs(mat2(1, 1) - 0.060606) < epsilon);
+		const TestType *target = &result.data.at(0);
+		for (const TestType &el : mat2)
+			REQUIRE(std::abs(el - *target++) < epsilon);
 	}
 }

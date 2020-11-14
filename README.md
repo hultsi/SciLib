@@ -163,3 +163,56 @@ Matrix2d<T> median(const Matrix2d<T> &matIn, const int direction) noexcept
 ```
 
 <p>Calculates median of the input matrix in given direction. Direction 0 calculates median of the whole matrix. Direction 1 calculates the median row-wise (for every column). Direction 2 calculates the median column-wise (for every row).</p><br>
+
+```C++
+template <typename T>
+Matrix2d<T> movmedian(const Matrix2d<T> &matIn, const int direction) noexcept
+```
+
+<p>Calculates moving median of the input matrix in given direction. Direction 0 calculates moving median of the whole matrix by sliding over the std::vector containing the data. Direction 1 calculates the moving median row-wise (for every column). Direction 2 calculates the moving median column-wise (for every row).</p><br>
+
+```C++
+template <typename T>
+Matrix2d<T> mean(const Matrix2d<T> &matIn, const int direction) noexcept
+```
+
+<p>Calculates mean of the input matrix in given direction. Direction 0 calculates mean of the whole matrix. Direction 1 calculates the mean row-wise (for every column). Direction 2 calculates the mean column-wise (for every row).</p><br>
+
+```C++
+template <typename T>
+Matrix2d<T> movmean(const Matrix2d<T> &matIn, const int direction) noexcept
+```
+
+<p>Calculates moving mean of the input matrix in given direction. Direction 0 calculates moving mean of the whole matrix by sliding over the std::vector containing the data. Direction 1 calculates the moving mean row-wise (for every column). Direction 2 calculates the moving mean column-wise (for every row).</p><br>
+
+```C++
+template <typename T>
+Matrix2d<T> glm(const Matrix2d<T> &X, const Matrix2d<T> &Y) noexcept {
+	if (X.getRows() != Y.getRows())
+		return Matrix2d<T>();
+	return (!(~X*X))*(~X)*Y;
+}
+```
+
+<p>Calculates generalized linear model by modeling data matrix X to data vector Y. Matrix X should have all the data in column vectors. This means that the amount of columns in X matches the amount of indepenedent variables and the amount of rows in X matches the amount of data points in the data set. Target vector Y should be a column vector.</p><br>
+
+```C++
+template <typename T>
+Matrix2d<T> operator+(Matrix2d<T> lhs, const T &rhs)
+template <typename T>
+Matrix2d<T> operator+(const T &lhs, Matrix2d<T> rhs)
+template <typename T>
+Matrix2d<T> operator-(Matrix2d<T> lhs, const T &rhs)
+template <typename T>
+Matrix2d<T> operator-(const T &lhs, Matrix2d<T> rhs)
+template <typename T>
+Matrix2d<T> operator*(Matrix2d<T> lhs, const T &rhs)
+template <typename T>
+Matrix2d<T> operator*(const T &lhs, Matrix2d<T> rhs)
+template <typename T>
+Matrix2d<T> operator/(Matrix2d<T> lhs, const T &rhs)
+template <typename T>
+Matrix2d<T> operator/(const T &lhs, Matrix2d<T> rhs)
+```
+
+<p>The operators for simple element by element summing, subtracting, multiplying and division between scalars and matrices<p><br>

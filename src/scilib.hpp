@@ -525,6 +525,14 @@ namespace scilib {
 			return Matrix2d<T>();
 		return (!(~X*X))*(~X)*Y;
 	}
+
+	// TODO: implement weighted regression
+	// template <typename T>
+	// Matrix2d<T> glm(const Matrix2d<T> &X, const Matrix2d<T> &Y, const Matrix2d<T> &W) noexcept {
+	// 	if (X.getRows() != Y.getRows())
+	// 		return Matrix2d<T>();
+	// 	return (!(~X*X))*(~X)*Y;
+	// }
 }
 
 namespace scilib {
