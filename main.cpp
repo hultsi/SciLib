@@ -5,6 +5,7 @@
 
 #include "scilib.h"
 #include "fileSys.h"
+#include "interpreter.h"
 
 using namespace std::chrono;
 
@@ -19,25 +20,13 @@ void timer(std::function<void()> fun, std::string timerName = "something") {
 			" -- Result: " << duration.count() << " milliseconds\n";
 }
 
-void testFun() {
-	fileSys::file<int> file1;
-	fileSys::readFile(file1, "./data/data.txt", '\t');
-	fileSys::file<float> file2;
-	fileSys::readFile(file2, "./data/data.txt", '\t');
-	fileSys::file<double> file3;
-	fileSys::readFile(file3, "./data/data.txt", '\t');
-
-	scilib::Matrix2d<double> mat1(file3);
-	scilib::Matrix2d<double> mat2(file3);
-	
-	//timer([&mat1,&mat2](){ mat1*mat2; }, "timer 1");
-	scilib::Matrix2d<double> mat3 = scilib::movmedian(mat1,3,1);
-	mat1.print();
-	mat3.print();
-}
 
 int main() {
-	testFun();
+	
+	std::string cmd("1+12-213*23/292929");
+	std::vector<std::string> tokens = interpreter::tokenize(cmd);
+	for (const std::string &str : tokens)
+		std::cout << str << "\n";
 
 	return 0;
 }
