@@ -12,6 +12,12 @@ namespace interpreter {
 	constexpr char PRODUCT = '*';
 	constexpr char DIVISION = '/';
 
+	enum errors {
+		ERR_INVALID_VARIABLE_NAME
+	};
+	const std::array<std::string,1> errorMessages = {
+		"Invalid variable name"
+	};
 	std::string tokenError = "";
 
 	std::vector<std::string> tokenize(std::string cmd) {
@@ -48,10 +54,8 @@ namespace interpreter {
 	bool verifyTokens(std::vector<std::string> tokens) {
 		// Does the command start or end with operator?
 		if ( scilibUtils::isBasicOperator(tokens.at(0)) ) {
-			tokenError = "";
 			return false;
 		} else if ( scilibUtils::isBasicOperator(tokens.at(tokens.size()-1))) {
-			tokenError = "";
 			return false;
 		}
 		
@@ -59,28 +63,24 @@ namespace interpreter {
 		for (const std::string &token : tokens) {
 			if (token == "+") {
 				if (prevWasOperator) {
-					tokenError = "";
 					return false;
 				}
 
 				prevWasOperator = true;
 			} else if (token == "-") {
 				if (prevWasOperator) {
-					tokenError = "";
 					return false;
 				}
 
 				prevWasOperator = true;
 			} else if (token == "*") {
 				if (prevWasOperator) {
-					tokenError = "";
 					return false;
 				}
 
 				prevWasOperator = true;
 			} else if (token == "/") {
 				if (prevWasOperator) {
-					tokenError = "";
 					return false;
 				}
 
@@ -95,7 +95,7 @@ namespace interpreter {
 					// First char is digit, so every other char must also be digit
 					for (const char &c : token) {
 						if (!(c >= 48 && c <= 57)) {
-							tokenError = "";
+							setTokenError(ERR_INVALID_VARIABLE_NAME, token);
 							return false;
 						}
 					}
@@ -104,5 +104,24 @@ namespace interpreter {
 			}
 		}
 		return true;
+	}
+
+	void setTokenError(int err, std::string token) {
+		std::string fullErr = "";
+		fullErr += errorMessages.at(err);
+		switch (err) {
+			case ERR_INVALID_VARIABLE_NAME: {
+				fullErr += " at ";
+				fullErr += "\"";
+				fullErr += token;
+				fullErr += "\"";
+				break;
+			}
+			default: {
+				
+				break;
+			}
+		}
+		tokenError = fullErr;
 	}
 }

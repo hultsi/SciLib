@@ -23,15 +23,13 @@ void timer(std::function<void()> fun, std::string timerName = "something") {
 
 int main() {
 	
-	std::string cmd("1+12-213*23/292929-asd123");
+	std::string cmd("1+12-213*23/292929-2asd123");
 	std::vector<std::string> tokens = interpreter::tokenize(cmd);
-	for (const std::string &str : tokens)
-		std::cout << str << "\n";
 	const bool allGood = interpreter::verifyTokens(tokens);
 	if (allGood)
 		std::cout << "All is well\n";
 	else
-		std::cout << "Some issue with tokens\n";
+		std::cout << interpreter::tokenError << "\n";
 
 	return 0;
 }
