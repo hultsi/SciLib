@@ -8,6 +8,7 @@
  **/
 namespace interpreter {
 	std::vector<std::string> tokenize(std::string cmd);
+	bool verifyTokens(std::vector<std::string> tokens);
 }
 
 #include "interpreter.hpp"

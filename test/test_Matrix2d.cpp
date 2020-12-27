@@ -228,7 +228,6 @@ TEMPLATE_TEST_CASE("Matrix2d &operator()", "[matrix2d][string]", std::string)
 
 TEMPLATE_TEST_CASE("Matrix2d product operator*", "[matrix2d][numerics]", int, float, double)
 {
-		std::cout << "Testing inverse\n";
 	const fileSys::file<TestType> TEST_FILE = {{1, 2, 3, 5, 6, 7, 10, 12, 14}, 3, 3};
 	const fileSys::file<TestType> TEST_FILE2 = {{3, 2, 1, -1, -2, -3}, 2, 3};
 	const scilib::Matrix2d<TestType> mat1(TEST_FILE);
