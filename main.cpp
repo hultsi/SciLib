@@ -22,14 +22,18 @@ void timer(std::function<void()> fun, std::string timerName = "something") {
 
 
 int main() {
-	
-	std::string cmd("1+12-213*23/292929-2asd123");
+	std::string cmd("3*2+4/2*2.5-1.1*2");
+	std::cout << cmd << "\n";
 	std::vector<std::string> tokens = interpreter::tokenize(cmd);
 	const bool allGood = interpreter::verifyTokens(tokens);
-	if (allGood)
-		std::cout << "All is well\n";
-	else
+	
+	double res;
+	if (!allGood)
 		std::cout << interpreter::tokenError << "\n";
+	else
+		res = interpreter::processArithmeticExpr(tokens);
+
+	std::cout << "Final result: " << res << "\n";
 
 	return 0;
 }

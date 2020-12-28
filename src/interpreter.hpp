@@ -11,6 +11,7 @@ namespace interpreter {
 	constexpr char MINUS = '-';
 	constexpr char PRODUCT = '*';
 	constexpr char DIVISION = '/';
+	constexpr char DOT = '.';
 
 	enum errors {
 		ERR_INVALID_VARIABLE_NAME
@@ -40,7 +41,7 @@ namespace interpreter {
 			} else if (c == DIVISION) {
 				tokens.emplace_back(std::string(1,c));
 				prevNotOperator = false;
-			} else if ((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122)) {
+			} else if (c == DOT || (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122)) {
 				if (prevNotOperator)
 					tokens.back() += c;
 				else
@@ -94,7 +95,7 @@ namespace interpreter {
 				if (!isVar) {
 					// First char is digit, so every other char must also be digit
 					for (const char &c : token) {
-						if (!(c >= 48 && c <= 57)) {
+						if (!( (c >= 48 && c <= 57) || c == DOT) ) {
 							setTokenError(ERR_INVALID_VARIABLE_NAME, token);
 							return false;
 						}
@@ -123,5 +124,113 @@ namespace interpreter {
 			}
 		}
 		tokenError = fullErr;
+	}
+
+	double processArithmeticExpr(std::vector<std::string> tokens) {
+		double result = 0;
+
+		processTokenDivision(tokens);
+		processTokenMultiplication(tokens);
+		processTokenSum(tokens);
+		processTokenSubtraction(tokens);
+
+		for (const std::string &str : tokens)
+			std::cout << str;
+		std::cout << "\n";
+
+		result = std::stod(tokens.at(0));
+		return result;
+	}
+
+	void processTokenSum(std::vector<std::string> &tokens) {
+		bool solved = false;
+		std::vector<std::string>::iterator it;
+		while (!solved) {
+			it = std::find(tokens.begin(), tokens.end(), "+");
+			if (it != tokens.end()) {
+				*(it-1) = std::to_string( sum( *(it-1), *(it+1) ) );
+				while (it != tokens.end()-2) {
+					*it = *(it+2);
+					++it;
+				}
+				while (it != tokens.end())
+					*it++ = "";
+			} else {
+				solved = true;
+			}
+		}
+	}
+
+	void processTokenSubtraction(std::vector<std::string> &tokens) {
+		bool solved = false;
+		std::vector<std::string>::iterator it;
+		while (!solved) {
+			it = std::find(tokens.begin(), tokens.end(), "-");
+			if (it != tokens.end()) {
+				*(it-1) = std::to_string( subtract( *(it-1), *(it+1) ) );
+				while (it != tokens.end()-2) {
+					*it = *(it+2);
+					++it;
+				}
+				while (it != tokens.end())
+					*it++ = "";
+			} else {
+				solved = true;
+			}
+		}
+	}
+
+	void processTokenDivision(std::vector<std::string> &tokens) {
+		bool solved = false;
+		std::vector<std::string>::iterator it;
+		while (!solved) {
+			it = std::find(tokens.begin(), tokens.end(), "/");
+			if (it != tokens.end()) {
+				*(it-1) = std::to_string( divide( *(it-1), *(it+1) ) );
+				while (it != tokens.end()-2) {
+					*it = *(it+2);
+					++it;
+				}
+				while (it != tokens.end())
+					*it++ = "";
+			} else {
+				solved = true;
+			}
+		}
+	}
+
+		void processTokenMultiplication(std::vector<std::string> &tokens) {
+		bool solved = false;
+		std::vector<std::string>::iterator it;
+		while (!solved) {
+			it = std::find(tokens.begin(), tokens.end(), "*");
+			if (it != tokens.end()) {
+				*(it-1) = std::to_string( multiply( *(it-1), *(it+1) ) );
+				while (it != tokens.end()-2) {
+					*it = *(it+2);
+					++it;
+				}
+				while (it != tokens.end())
+					*it++ = "";
+			} else {
+				solved = true;
+			}
+		}
+	}
+
+	double sum(std::string lhs, std::string rhs) {
+		return std::stod(lhs) + std::stod(rhs);
+	}
+
+	double subtract(std::string lhs, std::string rhs) {
+		return std::stod(lhs) - std::stod(rhs);
+	}
+
+	double divide(std::string lhs, std::string rhs) {
+		return std::stod(lhs) / std::stod(rhs);
+	}
+
+	double multiply(std::string lhs, std::string rhs) {
+		return std::stod(lhs) * std::stod(rhs);
 	}
 }
