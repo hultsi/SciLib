@@ -22,7 +22,7 @@ void timer(std::function<void()> fun, std::string timerName = "something") {
 
 
 int main() {
-	std::string cmd("3*2+4/2*2.5-1.1*2");
+	std::string cmd("3*(2+4)*(2+2)");
 	std::cout << cmd << "\n";
 	std::vector<std::string> tokens = interpreter::tokenize(cmd);
 	const bool allGood = interpreter::verifyTokens(tokens);

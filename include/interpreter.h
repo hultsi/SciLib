@@ -22,6 +22,7 @@ namespace interpreter {
 	void processTokenSubtraction(std::vector<std::string> &tokens);
 	void processTokenDivision(std::vector<std::string> &tokens);
 	void processTokenMultiplication(std::vector<std::string> &tokens);
+	void processTokenBrackets(std::vector<std::string> &tokens);
 
 	double sum(std::string lhs, std::string rhs);
 	double subtract(std::string lhs, std::string rhs);

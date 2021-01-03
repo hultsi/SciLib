@@ -12,6 +12,8 @@ namespace interpreter {
 	constexpr char PRODUCT = '*';
 	constexpr char DIVISION = '/';
 	constexpr char DOT = '.';
+	constexpr char LEFT_BRACKET = '(';
+	constexpr char RIGHT_BRACKET = ')';
 
 	enum errors {
 		ERR_INVALID_VARIABLE_NAME
@@ -41,6 +43,12 @@ namespace interpreter {
 			} else if (c == DIVISION) {
 				tokens.emplace_back(std::string(1,c));
 				prevNotOperator = false;
+			} else if (c == LEFT_BRACKET) {
+				tokens.emplace_back(std::string(1,c));
+				prevNotOperator = false;
+			} else if (c == RIGHT_BRACKET) {
+				tokens.emplace_back(std::string(1,c));
+				prevNotOperator = false;
 			} else if (c == DOT || (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122)) {
 				if (prevNotOperator)
 					tokens.back() += c;
@@ -60,6 +68,7 @@ namespace interpreter {
 			return false;
 		}
 		
+		int openBrackets = 0;
 		bool prevWasOperator = false;
 		for (const std::string &token : tokens) {
 			if (token == "+") {
@@ -86,8 +95,13 @@ namespace interpreter {
 				}
 
 				prevWasOperator = true;
+			} else if (token == "(") {
+				++openBrackets;
+			} else if (token == ")") {
+				--openBrackets;
 			} else {
 				bool isVar = true;
+				bool hasDot = false;
 				// Is first char digit?
 				if ( (char)token.at(0) >= 48 && (char)token.at(0) <= 57 ) {
 					isVar = false;
@@ -95,15 +109,18 @@ namespace interpreter {
 				if (!isVar) {
 					// First char is digit, so every other char must also be digit
 					for (const char &c : token) {
-						if (!( (c >= 48 && c <= 57) || c == DOT) ) {
+						if (!( (c >= 48 && c <= 57) || c == DOT) && !hasDot) {
 							setTokenError(ERR_INVALID_VARIABLE_NAME, token);
 							return false;
 						}
+						if (c == DOT) hasDot = true;
 					}
 				}
 				prevWasOperator = false;
 			}
 		}
+		if (openBrackets != 0)
+			return false;
 		return true;
 	}
 
@@ -129,17 +146,38 @@ namespace interpreter {
 	double processArithmeticExpr(std::vector<std::string> tokens) {
 		double result = 0;
 
+		processTokenBrackets(tokens);
 		processTokenDivision(tokens);
 		processTokenMultiplication(tokens);
 		processTokenSum(tokens);
 		processTokenSubtraction(tokens);
-
-		for (const std::string &str : tokens)
-			std::cout << str;
-		std::cout << "\n";
-
+	
 		result = std::stod(tokens.at(0));
+
 		return result;
+	}
+
+	void processTokenBrackets(std::vector<std::string> &tokens) {
+		double tmpRes = 0;
+		std::vector<std::string>::iterator closing = std::find(tokens.begin(), tokens.end(), ")");
+		while (closing != tokens.end()) {
+			std::vector<std::string>::iterator opening = closing;
+			while (opening != tokens.begin()) {
+				--opening;
+				if (*opening == "(") break;
+			}
+			tmpRes = processArithmeticExpr(std::vector<std::string>(opening+1, closing));
+			*opening = std::to_string(tmpRes);
+			while (closing != tokens.end()-1) {
+				++opening;
+				++closing;
+				*opening = *closing;
+			}
+			while (opening != tokens.end()-1)
+				*++opening = "";
+
+			closing = std::find(tokens.begin(), tokens.end(), ")");
+		}
 	}
 
 	void processTokenSum(std::vector<std::string> &tokens) {
